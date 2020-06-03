@@ -11,7 +11,6 @@ const clearBtn = document.querySelector('.clear-btn');
 let editElement;
 let editFlag = false;
 let editID = '';
-
 form.addEventListener('submit', addItem);
 // clear items
 clearBtn.addEventListener('click', clearItems);
@@ -23,27 +22,10 @@ function addItem(e) {
   const id = new Date().getTime().toString();
 
   if (value.trim() && !editFlag) {
-    const article = document.createElement('article');
-    // add class
-    article.classList.add('grocery-item');
-    // add id
-    article.setAttribute('data-id', id);
-    article.innerHTML = `
-        <p class="title">${value}</p>
-        <div class="btn-container">
-          <button type="button" class="edit-btn" data-id="${id}">
-            <i class="fas fa-edit"></i>
-          </button>
-
-          <button type="button" class="delete-btn" data-id="${id}">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>`;
-    // append child
-    list.appendChild(article);
+    createListItem(id, value);
 
     const deleteBtn = document.querySelectorAll('.delete-btn');
-    const editBtn = document.querySelector('.edit-btn');
+    const editBtn = document.querySelectorAll('.edit-btn');
     deleteBtn.forEach((item) => {
       item.addEventListener('click', deleteItem);
     });
@@ -125,42 +107,77 @@ function setBackToDefault() {
 }
 
 function addToLocalStorage(id, value) {
-  const grocery = { id, value };
-  const todo = !localStorage.getItem('list')
-    ? []
-    : JSON.parse(localStorage.getItem('list'));
-
-  local.push(grocery);
-  localStorage.setItem('list', JSON.stringify(todo));
-}
-
-function removeFromLocalStorage(id) {
-  const todo = JSON.parse(localStorage.getItem('list'));
-
-  const updateTodo = todo.filter((item) => {
-    return item.id !== id;
-  });
-
-  localStorage.setItem('list', JSON.parse(updateTodo));
-}
-
-function editLocalStorage(id, value) {
-  const todo = JSON.parse(localStorage.getItem('list'));
   const items = { id, value };
+  const todo = getLocalStorage();
   todo.push(items);
 
   localStorage.setItem('list', JSON.stringify(todo));
 }
 
-function getLocalStorage() {}
+function removeFromLocalStorage(id) {
+  const todo = getLocalStorage();
 
-function initialLoaded() {}
+  const updateTodo = todo.filter((item) => {
+    return item.id !== id;
+  });
+
+  localStorage.setItem('list', JSON.stringify(updateTodo));
+}
+
+function editLocalStorage(id, value) {
+  let todo = getLocalStorage();
+  todo = todo.map((item) => {
+    if (item.id === id) {
+      item.value = value;
+    }
+    return item;
+  });
+
+  localStorage.setItem('list', JSON.stringify(todo));
+}
+
+function getLocalStorage() {
+  return !localStorage.getItem('list')
+    ? []
+    : JSON.parse(localStorage.getItem('list'));
+}
+
+function initialLoaded() {
+  let todo = getLocalStorage();
+  todo.forEach((item) => {
+    const { id, value } = item;
+    createListItem(id, value);
+  });
+}
+
+function createListItem(id, value) {
+  const article = document.createElement('article');
+  // add class
+  article.classList.add('grocery-item');
+  // add id
+  article.setAttribute('data-id', id);
+  article.innerHTML = `
+        <p class="title">${value}</p>
+        <div class="btn-container">
+          <button type="button" class="edit-btn" data-id="${id}">
+            <i class="fas fa-edit"></i>
+          </button>
+
+          <button type="button" class="delete-btn" data-id="${id}">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>`;
+  // append child
+  list.appendChild(article);
+
+  container.classList.add('show-container');
+}
 
 function clearBtnDelete() {
   container.classList.remove('show-container');
 }
 
-window.addEventListener('DOMContentLoaded', () => {});
+window.addEventListener('DOMContentLoaded', initialLoaded);
 
 // edit option이 필요한 이유?
 // edit값을 맞추려고?
